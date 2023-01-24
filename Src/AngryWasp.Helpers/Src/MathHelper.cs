@@ -459,11 +459,27 @@ namespace AngryWasp.Helpers
         }
 
         /// <summary>
+        /// returns false is any component (x, y) is either NaN of +/- Infinity
+        /// </summary>
+        /// <param name="v"></param>
+        /// <returns></returns>
+        public static bool IsValid(this Vector2 v)
+        {
+            if (float.IsNaN(v.X) || float.IsInfinity(v.X))
+                return false;
+
+            if (float.IsNaN(v.Y) || float.IsInfinity(v.Y))
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
         /// returns false is any component (x, y, z) is either NaN of +/- Infinity
         /// </summary>
         /// <param name="v"></param>
         /// <returns></returns>
-        public static bool IsValid(Vector3 v)
+        public static bool IsValid(this Vector3 v)
         {
             if (float.IsNaN(v.X) || float.IsInfinity(v.X))
                 return false;
@@ -472,6 +488,28 @@ namespace AngryWasp.Helpers
                 return false;
 
             if (float.IsNaN(v.Z) || float.IsInfinity(v.Z))
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// returns false is any component (x, y, z, w) is either NaN of +/- Infinity
+        /// </summary>
+        /// <param name="v"></param>
+        /// <returns></returns>
+        public static bool IsValid(this Vector4 v)
+        {
+            if (float.IsNaN(v.X) || float.IsInfinity(v.X))
+                return false;
+
+            if (float.IsNaN(v.Y) || float.IsInfinity(v.Y))
+                return false;
+
+            if (float.IsNaN(v.Z) || float.IsInfinity(v.Z))
+                return false;
+
+            if (float.IsNaN(v.W) || float.IsInfinity(v.W))
                 return false;
 
             return true;
