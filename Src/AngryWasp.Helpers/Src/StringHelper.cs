@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -18,7 +15,7 @@ namespace AngryWasp.Helpers
         /// <returns><c>true</c>, if get type parameters was tryed, <c>false</c> otherwise.</returns>
         /// <param name="s">S.</param>
         /// <param name="namedParameters">Named parameters.</param>
-        public static bool TryGetTypeParams(string s, out Dictionary<string, string> namedParameters)
+        public static bool TryGetTypeParams(this string s, out Dictionary<string, string> namedParameters)
         {
             s = s.TrimStart(new char[] { '{' }).TrimEnd(new char[] { '}' });
 
@@ -46,7 +43,7 @@ namespace AngryWasp.Helpers
         /// </summary>
         /// <returns>The values inside parentheses.</returns>
         /// <param name="s">S.</param>
-        public static List<string> GetValuesInsideParentheses(string s)
+        public static List<string> GetValuesInsideParentheses(this string s)
         {
             int startIndex = s.IndexOf('(') + 1;
             int endIndex = s.LastIndexOf(')');
@@ -68,7 +65,7 @@ namespace AngryWasp.Helpers
         /// <param name="toReplace">array of chars to replace</param>
         /// <param name="replaceWith">array of chars to replace them with</param>
         /// <returns>string.Empty in an error, otherwise the processed string</returns>
-        public static string ReplaceAll(string value, char[] toReplace, char[] replaceWith)
+        public static string ReplaceAll(this string value, char[] toReplace, char[] replaceWith)
         {
             if (toReplace.Length != replaceWith.Length)
                 return string.Empty;
@@ -85,7 +82,7 @@ namespace AngryWasp.Helpers
         /// <param name="toReplace">array of strings to replace</param>
         /// <param name="replaceWith">array of strings to replace them with</param>
         /// <returns>string.Empty in an error, otherwise the processed string</returns>
-        public static string ReplaceAll(string value, string[] toReplace, string[] replaceWith)
+        public static string ReplaceAll(this string value, string[] toReplace, string[] replaceWith)
         {
             if (toReplace.Length != replaceWith.Length)
                 return string.Empty;
@@ -102,7 +99,7 @@ namespace AngryWasp.Helpers
         /// <param name="s">The string to check</param>
         /// <param name="onlineCheck">if true, performs secondary checking for the existence of the address</param>
         /// <returns>true if valid, else false</returns>
-        public static bool IsValidEmail(string s, bool onlineCheck = false)
+        public static bool IsValidEmail(this string s, bool onlineCheck = false)
         {
             if (string.IsNullOrEmpty(s))
                 return false;
@@ -159,7 +156,7 @@ namespace AngryWasp.Helpers
         /// <param name="s">the string to convert</param>
         /// <param name="spaces">the number of spaces to use for each tab</param>
         /// <returns>the formatted string</returns>
-        public static string TabsToSpaces(string s, int spaces)
+        public static string TabsToSpaces(this string s, int spaces)
         {
             string space = string.Empty;
             for (int i = 0; i < spaces; i++)
@@ -173,7 +170,7 @@ namespace AngryWasp.Helpers
         /// </summary>
         /// <param name="s"></param>
         /// <returns></returns>
-        public static string RemoveWhitespace(string s)
+        public static string RemoveWhitespace(this string s)
         {
             s = TabsToSpaces(s, 1);
             s = s.Replace(" ", "");
@@ -185,7 +182,7 @@ namespace AngryWasp.Helpers
         /// </summary>
         /// <param name="s">The path to check</param>
         /// <returns>True if illegal characters found, otherwise false</returns>
-        public static bool PathContainsIllegalCharacters(string s)
+        public static bool PathContainsIllegalCharacters(this string s)
         {
             if (s.Contains('\\') || s.Contains('/') || s.Contains(':') ||
                 s.Contains('*') || s.Contains('?') || s.Contains('"') ||
@@ -199,98 +196,28 @@ namespace AngryWasp.Helpers
         {
             return s.Replace("\\", "/");
         }
-    }
 
-    public static class StringExtensions
-    {
         public static string CapitalizeFirstWord(this string value) => value[0].ToString().ToUpper() + value.Substring(1);
-
-        #region String encryption
-
-        private const int Keysize = 128;
-        private const int DerivationIterations = 1000;
-
-        public static string Encrypt(this string plainText, string passPhrase)
-        {
-            var saltStringBytes = GenerateEntropy();
-            var ivStringBytes = GenerateEntropy();
-            var plainTextBytes = Encoding.UTF8.GetBytes(plainText);
-            using (var password = new Rfc2898DeriveBytes(passPhrase, saltStringBytes, DerivationIterations, HashAlgorithmName.SHA512))
-            {
-                var keyBytes = password.GetBytes(Keysize / 8);
-                using (var symmetricKey = System.Security.Cryptography.Aes.Create())
-                {
-                    symmetricKey.BlockSize = 128;
-                    symmetricKey.Mode = CipherMode.CBC;
-                    symmetricKey.Padding = PaddingMode.PKCS7;
-                    using (var encryptor = symmetricKey.CreateEncryptor(keyBytes, ivStringBytes))
-                    {
-                        using (var memoryStream = new MemoryStream())
-                        {
-                            using (var cryptoStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write))
-                            {
-                                cryptoStream.Write(plainTextBytes, 0, plainTextBytes.Length);
-                                cryptoStream.FlushFinalBlock();
-                                var cipherTextBytes = saltStringBytes;
-                                cipherTextBytes = cipherTextBytes.Concat(ivStringBytes).ToArray();
-                                cipherTextBytes = cipherTextBytes.Concat(memoryStream.ToArray()).ToArray();
-                                memoryStream.Close();
-                                cryptoStream.Close();
-                                return Convert.ToBase64String(cipherTextBytes);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        public static string Decrypt(this string cipherText, string passPhrase)
-        {
-            var cipherTextBytesWithSaltAndIv = Convert.FromBase64String(cipherText);
-            var saltStringBytes = cipherTextBytesWithSaltAndIv.Take(Keysize / 8).ToArray();
-            var ivStringBytes = cipherTextBytesWithSaltAndIv.Skip(Keysize / 8).Take(Keysize / 8).ToArray();
-            var cipherTextBytes = cipherTextBytesWithSaltAndIv.Skip((Keysize / 8) * 2).Take(cipherTextBytesWithSaltAndIv.Length - ((Keysize / 8) * 2)).ToArray();
-
-            using (var password = new Rfc2898DeriveBytes(passPhrase, saltStringBytes, DerivationIterations, HashAlgorithmName.SHA512))
-            {
-                var keyBytes = password.GetBytes(Keysize / 8);
-                using (var symmetricKey = System.Security.Cryptography.Aes.Create())
-                {
-                    symmetricKey.BlockSize = 128;
-                    symmetricKey.Mode = CipherMode.CBC;
-                    symmetricKey.Padding = PaddingMode.PKCS7;
-                    using (var decryptor = symmetricKey.CreateDecryptor(keyBytes, ivStringBytes))
-                    {
-                        using (var memoryStream = new MemoryStream(cipherTextBytes))
-                        {
-                            using (var cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read))
-                            {
-                                var plainTextBytes = new byte[cipherTextBytes.Length];
-                                var decryptedByteCount = cryptoStream.Read(plainTextBytes, 0, plainTextBytes.Length);
-                                memoryStream.Close();
-                                cryptoStream.Close();
-                                return Encoding.UTF8.GetString(plainTextBytes, 0, decryptedByteCount);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        private static byte[] GenerateEntropy()
-        {
-            var randomBytes = new byte[16];
-            RandomNumberGenerator.Create().GetBytes(randomBytes);
-            return randomBytes;
-        }
-
-        #endregion
 
         #region Encode/Decode Base64
 
         public static string EncodeBase64(this string t) => Convert.ToBase64String(Encoding.UTF8.GetBytes(t));
 
+        public static string EncodeBase64(this byte[] t) => Convert.ToBase64String(t);
+
         public static string DecodeBase64(this string t) => Encoding.UTF8.GetString(Convert.FromBase64String(t));
+
+        public static string EncodeBase58(this string t) => Base58.Encode(Encoding.UTF8.GetBytes(t));
+
+        public static string EncodeBase58(this byte[] t) => Base58.Encode(t);
+
+        public static string DecodeBase58(this string t)
+        {
+            if (!Base58.Decode(t, out byte[] result))
+                throw new FormatException("Base58 decoding failed");
+
+            return Encoding.UTF8.GetString(result);
+        }
 
         #endregion
 
