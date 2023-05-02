@@ -199,21 +199,33 @@ namespace AngryWasp.Helpers
 
         public static string CapitalizeFirstWord(this string value) => value[0].ToString().ToUpper() + value.Substring(1);
 
-        #region Encode/Decode Base64
+        #region Encode/Decode Base58/Base64
 
-        public static string EncodeBase64(this string t) => Convert.ToBase64String(Encoding.UTF8.GetBytes(t));
+        public static string ToBase64(this string t) => Convert.ToBase64String(Encoding.UTF8.GetBytes(t));
 
-        public static string EncodeBase64(this byte[] t) => Convert.ToBase64String(t);
+        public static string ToBase64(this byte[] t) => Convert.ToBase64String(t);
 
-        public static string DecodeBase64(this string t) => Encoding.UTF8.GetString(Convert.FromBase64String(t));
+        public static string FromBase64(this string t) => Encoding.UTF8.GetString(Convert.FromBase64String(t));
 
-        public static string EncodeBase58(this string t) => Base58.Encode(Encoding.UTF8.GetBytes(t));
+        public static string ToBase58(this string t) => Base58.Encode(Encoding.UTF8.GetBytes(t));
 
-        public static string EncodeBase58(this byte[] t) => Base58.Encode(t);
+        public static string ToBase58(this byte[] t) => Base58.Encode(t);
 
-        public static string DecodeBase58(this string t)
+        public static string ToBase58Checksum(this string t) => Base58.EncodeWithCheckSum(Encoding.UTF8.GetBytes(t));
+
+        public static string ToBase58Checksum(this byte[] t) => Base58.EncodeWithCheckSum(t);
+
+        public static string FromBase58(this string t)
         {
             if (!Base58.Decode(t, out byte[] result))
+                throw new FormatException("Base58 decoding failed");
+
+            return Encoding.UTF8.GetString(result);
+        }
+
+        public static string FromBase58Checksum(this string t)
+        {
+            if (!Base58.DecodeWithCheckSum(t, out byte[] result))
                 throw new FormatException("Base58 decoding failed");
 
             return Encoding.UTF8.GetString(result);
@@ -237,22 +249,9 @@ namespace AngryWasp.Helpers
         }
 
         /// <summary>
-        /// Converts a string of ASCII characters to an sbyte[]
-        /// </summary>
-        public static sbyte[] CharsToSByte(this string input, int count = 0)
-        {
-            count = (count == 0) ? input.Length : count;
-            sbyte[] raw = new sbyte[count];
-            for (int i = 0; i < count; i++)
-                raw[i] = Convert.ToSByte(input[i]);
-
-            return raw;
-        }
-
-        /// <summary>
         /// Converts a hex formatted string to a byte[]
         /// </summary>
-        public static byte[] FromByteHex(this string input)
+        public static byte[] FromHex(this string input)
         {
             byte[] raw = new byte[input.Length / 2];
             for (int i = 0; i < raw.Length; i++)
@@ -262,38 +261,9 @@ namespace AngryWasp.Helpers
         }
 
         /// <summary>
-        /// Converts a hex formatted string to an sbyte[]
-        /// </summary>
-        public static sbyte[] FromSByteHex(this string input)
-        {
-            sbyte[] raw = new sbyte[input.Length / 2];
-            for (int i = 0; i < raw.Length; i++)
-                raw[i] = Convert.ToSByte(input.Substring(i * 2, 2), 16);
-
-            return raw;
-        }
-
-        /// <summary>
         /// Converts a byte[] to a hex formatted string
         /// </summary>
         public static string ToHex(this byte[] input, bool lowerCase = true, int count = 0)
-        {
-            try
-            {
-                count = (count == 0) ? input.Length : count;
-                string format = lowerCase ? "{0:x2}" : "{0:X2}";
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < count; i++)
-                    sb.AppendFormat(format, input[i]);
-                return sb.ToString().Trim();
-            }
-            catch { return string.Empty; }
-        }
-
-        /// <summary>
-        /// Converts an sbyte[] to a hex formatted string
-        /// </summary>
-        public static string ToHex(this sbyte[] input, bool lowerCase = true, int count = 0)
         {
             try
             {

@@ -35,9 +35,7 @@ namespace AngryWasp.Helpers
             // Decode byte[] to BigInteger
             BigInteger intData = 0;
             for (int i = 0; i < data.Length; i++)
-            {
                 intData = intData * 256 + data[i];
-            }
 
             // Encode BigInteger to Base58 string
             string result = "";
@@ -50,9 +48,8 @@ namespace AngryWasp.Helpers
 
             // Append `1` for each leading 0 byte
             for (int i = 0; i < data.Length && data[i] == 0; i++)
-            {
                 result = '1' + result;
-            }
+            
             return result;
         }
 
