@@ -7,28 +7,22 @@ namespace AngryWasp.Helpers
 {
     public static class Base58
     {
-        public const int CheckSumSizeInBytes = 4;
-
-        public static byte[] AddCheckSum(byte[] data)
-        {
-            var checkSum = GetCheckSum(data);
-            var dataWithCheckSum = ConcatArrays(data, checkSum);
-            return dataWithCheckSum;
-        }
-
-        public static byte[] VerifyAndRemoveCheckSum(byte[] data)
-        {
-            if (data == null) return null;
-            var result = SubArray(data, 0, data.Length - CheckSumSizeInBytes);
-            var givenCheckSum = SubArray(data, data.Length - CheckSumSizeInBytes);
-            var correctCheckSum = GetCheckSum(result);
-            if (givenCheckSum.SequenceEqual(correctCheckSum))
-                return result;
-            else
-                return null;
-        }
-
         private const string Digits = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+
+        public static bool VerifyAndRemoveCheckSum(byte[] data, out byte[] result, int checksumSize = 4)
+        {
+            result = null;
+            if (data == null) return false;
+            if (data.Length < checksumSize) return false;
+
+            result = SubArray(data, 0, data.Length - checksumSize);
+            var givenCheckSum = SubArray(data, data.Length - checksumSize);
+            bool ok = givenCheckSum.SequenceEqual(CalculateCheckSum(result, checksumSize));
+
+            if (!ok) result = null;
+
+            return ok;
+        }
 
         public static string Encode(byte[] data)
         {
@@ -50,7 +44,7 @@ namespace AngryWasp.Helpers
             return result;
         }
 
-        public static string EncodeWithCheckSum(byte[] data) => Encode(AddCheckSum(data));
+        public static string EncodeWithCheckSum(byte[] data, int checksumSize = 4) => Encode(ConcatArrays(data, CalculateCheckSum(data, checksumSize)));
 
         public static bool Decode(string s, out byte[] result)
         {
@@ -74,26 +68,15 @@ namespace AngryWasp.Helpers
             return true;
         }
 
-        public static bool DecodeWithCheckSum(string s, out byte[] result)
+        public static bool DecodeWithCheckSum(string s, out byte[] result, int checksumSize = 4)
         {
             if (!Decode(s, out result))
                 return false;
 
-            result = VerifyAndRemoveCheckSum(result);
-            if (result == null)
-                return false;
-
-            return true;
+            return VerifyAndRemoveCheckSum(result, out result, checksumSize);
         }
 
-        private static byte[] GetCheckSum(byte[] data)
-        {
-            var hash = Hash(Hash(data));
-            var result = new byte[CheckSumSizeInBytes];
-            Buffer.BlockCopy(hash, 0, result, 0, result.Length);
-
-            return result;
-        }
+        public static byte[] CalculateCheckSum(byte[] data, int checksumSize = 4) => Hash(Hash(data)).Take(4).ToArray();
 
         private static byte[] ConcatArrays(byte[] a, byte[] b)
         {
