@@ -19,7 +19,7 @@ namespace AngryWasp.Helpers
             checksum = SubArray(data, data.Length - checksumSize);
             bool ok = checksum.SequenceEqual(CalculateCheckSum(result, checksumSize));
 
-            if (!ok) result = null;
+            if (!ok) result = checksum = null;
 
             return ok;
         }
