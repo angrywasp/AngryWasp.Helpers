@@ -9,15 +9,15 @@ namespace AngryWasp.Helpers
     {
         private const string Digits = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
-        public static bool VerifyAndRemoveCheckSum(byte[] data, out byte[] result, int checksumSize = 4)
+        public static bool VerifyAndRemoveCheckSum(byte[] data, out byte[] result, out byte[] checksum, int checksumSize = 4)
         {
-            result = null;
+            result = checksum = null;
             if (data == null) return false;
             if (data.Length < checksumSize) return false;
 
             result = SubArray(data, 0, data.Length - checksumSize);
-            var givenCheckSum = SubArray(data, data.Length - checksumSize);
-            bool ok = givenCheckSum.SequenceEqual(CalculateCheckSum(result, checksumSize));
+            checksum = SubArray(data, data.Length - checksumSize);
+            bool ok = checksum.SequenceEqual(CalculateCheckSum(result, checksumSize));
 
             if (!ok) result = null;
 
@@ -68,15 +68,16 @@ namespace AngryWasp.Helpers
             return true;
         }
 
-        public static bool DecodeWithCheckSum(string s, out byte[] result, int checksumSize = 4)
+        public static bool DecodeWithCheckSum(string s, out byte[] result, out byte[] checksum, int checksumSize = 4)
         {
+            result = checksum = null;
             if (!Decode(s, out result))
                 return false;
 
-            return VerifyAndRemoveCheckSum(result, out result, checksumSize);
+            return VerifyAndRemoveCheckSum(result, out result, out checksum, checksumSize);
         }
 
-        public static byte[] CalculateCheckSum(byte[] data, int checksumSize = 4) => Hash(Hash(data)).Take(4).ToArray();
+        public static byte[] CalculateCheckSum(byte[] data, int checksumSize = 4) => Hash(Hash(data)).Take(checksumSize).ToArray();
 
         private static byte[] ConcatArrays(byte[] a, byte[] b)
         {

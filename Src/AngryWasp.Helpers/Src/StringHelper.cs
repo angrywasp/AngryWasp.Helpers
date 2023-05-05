@@ -211,21 +211,9 @@ namespace AngryWasp.Helpers
 
         public static string ToBase58(this byte[] t) => Base58.Encode(t);
 
-        public static string ToBase58Checksum(this string t, int checksumSize = 4) => Base58.EncodeWithCheckSum(Encoding.UTF8.GetBytes(t), checksumSize);
-
-        public static string ToBase58Checksum(this byte[] t, int checksumSize = 4) => Base58.EncodeWithCheckSum(t, checksumSize);
-
         public static string FromBase58(this string t)
         {
             if (!Base58.Decode(t, out byte[] result))
-                throw new FormatException("Base58 decoding failed");
-
-            return Encoding.UTF8.GetString(result);
-        }
-
-        public static string FromBase58Checksum(this string t, int checksumSize)
-        {
-            if (!Base58.DecodeWithCheckSum(t, out byte[] result, checksumSize))
                 throw new FormatException("Base58 decoding failed");
 
             return Encoding.UTF8.GetString(result);
