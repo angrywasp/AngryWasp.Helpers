@@ -2,9 +2,9 @@ using System.Linq;
 
 namespace AngryWasp.Helpers
 {
-    public static class Base58
+    public static class Base49
     {
-        private const string CHARSET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+        private const string CHARSET = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
         public static bool VerifyAndRemoveCheckSum(byte[] data, out byte[] result, out byte[] checksum, int checksumSize = 4) =>
             new Encoder(CHARSET).VerifyAndRemoveCheckSum(data, out result, out checksum, checksumSize);

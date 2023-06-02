@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Text;
 
 namespace AngryWasp.Helpers.Test
 {
@@ -8,9 +9,11 @@ namespace AngryWasp.Helpers.Test
         private static void Main(string[] rawArgs)
         {
             Console.WriteLine("");
-            //var a = Base58.EncodeWithCheckSum(new byte[] { Constants.ADDRESS_PREFIX }.Concat(new byte[28]).ToArray(), 3);
-            var b = Base58.DecodeWithCheckSum("4uQeVj5tqViQh7yWWGStvkEG1Zmhx6uasJtWCJzxFNY", out var result, out var checksum, 3);
-            Debugger.Break();
+            string testData = "Hello World. This is a test string";
+            var encoded = Base49.EncodeWithCheckSum(Encoding.UTF8.GetBytes(testData));
+            Base49.DecodeWithCheckSum(encoded, out var decoded, out var checksum);
+            Console.WriteLine(Encoding.UTF8.GetString(decoded));
+            
             //Console.WriteLine(a);
             //Console.WriteLine(result.Concat(checksum).ToArray().ToPrefixedHex());
         }
